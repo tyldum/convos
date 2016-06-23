@@ -153,7 +153,7 @@ sub delete_connection {
     },
     sub {
       my ($delay, $error) = @_;
-      return $self->render_not_found if $error;
+      return $self->reply->not_found if $error;
       return $self->redirect_to('index');
     }
   );

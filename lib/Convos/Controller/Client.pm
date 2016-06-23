@@ -75,7 +75,7 @@ sub conversation {
       my ($delay, $network, $last_read_time, $previous_name) = @_;
 
       unless ($network->{state}) {
-        return $self->stash(layout => 'tactile')->render_not_found;
+        return $self->stash(layout => 'tactile')->reply->not_found;
       }
 
       $self->stash(
@@ -87,7 +87,7 @@ sub conversation {
 
       if ($target and !$last_read_time) {    # no such conversation
         return $delay->pass if $self->param('from');
-        return $self->stash(layout => 'tactile')->render_not_found;
+        return $self->stash(layout => 'tactile')->reply->not_found;
       }
       if (!$target) {
         $self->stash(sidebar => 'convos');

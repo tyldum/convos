@@ -217,6 +217,7 @@ sub redis {
     $redis->on(
       error => sub {
         $log->error("[REDIS ERROR] $_[1]");
+        #shift->disconnect; # force reconnect on error
       }
     );
 

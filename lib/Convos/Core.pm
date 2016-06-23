@@ -152,7 +152,8 @@ sub add_connection {
     return $self;
   }
 
-  my ($login, $name) = $validation->param([qw( login name )]);
+  my $login = $validation->param('login');
+  my $name = $validation->param('name');
 
   warn "[core:$login] add ", _dumper($validation->output), "\n" if DEBUG;
   Scalar::Util::weaken($self);
@@ -211,7 +212,8 @@ sub update_connection {
     return $self;
   }
 
-  my ($login, $name) = $validation->param([qw( login name )]);
+  my $login = $validation->param('login');
+  my $name = $validation->param('name');
   my $conn  = Convos::Core::Connection->new(%{$validation->output});
   my $redis = $self->redis;
 
@@ -278,7 +280,8 @@ sub delete_connection {
     return $self;
   }
 
-  my ($login, $name) = $validation->param([qw( login name )]);
+  my $login = $validation->param('login');
+  my $name = $validation->param('name');
 
   warn "[core:$login] delete $name\n" if DEBUG;
   Mojo::IOLoop->delay(
