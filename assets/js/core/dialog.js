@@ -46,6 +46,9 @@
         if (err) {
           messages.push({message: err[0].message || "Unknown error.", type: "error"});
         }
+        else if (frozen.match(/password/i)) {
+          this.addMessage({type: "password"});
+        }
         else if (frozen) {
           messages.push({message: self.dialog_id ? "You are not part of this dialog. " + frozen : frozen, type: "error"});
         }

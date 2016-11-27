@@ -48,7 +48,7 @@
     return this.me.nick ? this.me.nick : this.url.parseUrl().query.nick || "";
   };
 
-  proto.notice = function(message) {
+  proto.globalNotice = function(message) {
     var dialog = this.user.getActiveDialog();
     if (dialog) dialog.addMessage({from: this.connection_id, message: message, type: "notice"});
   };
@@ -219,7 +219,7 @@
   };
 
   proto._sentReconnect = function(msg) {
-    this.notice('Reconnecting to ' + this.connection_id + '...');
+    this.globalNotice('Reconnecting to ' + this.connection_id + '...');
   };
 
   proto._sentTopic = function(msg) {
@@ -258,14 +258,13 @@
         break;
       case "frozen":
         this.getDialog("").frozen = data.frozen;
-        this.user.ensureDialog(data);
+        this.user.ensureDialog(data).addMessage({});
         break;
       case "join":
       case "part":
         this.dialogs().forEach(function(d) { d.participant(data); });
         break;
       case "me":
-        if (this.me.nick != data.nick) this.notice('You changed nick to ' + data.nick + '.');
         this.me.nick = data.nick;
         break;
       case "mode":
