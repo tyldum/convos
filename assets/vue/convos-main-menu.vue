@@ -8,11 +8,14 @@
       </div>
     </header>
     <div class="content">
-      <a v-link="d.href()" v-tooltip="d.frozen" :class="dialogClass(d, $index)" v-for="d in dialogs">
-        <i class="material-icons">{{d.icon()}}</i> <span class="name">{{d.dialog_id ? d.name : d.connection_id}}</span>
-        <b class="n-uread" v-if="d.unread" v-tooltip="d.unread + ' unread messages'">{{d.unread < 100 ? d.unread : "99+"}}</b>
-        <span class="on" v-if="d.dialog_id">{{d.connection().protocol}}-{{d.connection().name}}</span>
-      </a>
+      <div class="link" v-for="d in dialogs">
+        <a v-link="d.href()" v-tooltip="d.frozen" :class="dialogClass(d, $index)">
+          <i class="material-icons">{{d.icon()}}</i> <span class="name">{{d.dialog_id ? d.name : d.connection_id}}</span>
+          <b class="n-uread" v-if="d.unread" v-tooltip="d.unread + ' unread messages'">{{d.unread < 100 ? d.unread : "99+"}}</b>
+          <span class="on" v-if="d.dialog_id">{{d.connection().protocol}}-{{d.connection().name}}</span>
+        </a>
+        <a href="#close" @click.prevent="close(d)" class="close"><i class="material-icons">close</i></a>
+      </div>
       <div class="divider"></div>
       <a v-link.literal="#create-dialog" v-if="user.connections.length" class="simple" :class="activeClass('#create-dialog')">
         <i class="material-icons">add</i> Join dialog...
@@ -75,6 +78,10 @@ module.exports = {
     }
   },
   methods: {
+    close: function(d) {
+      return console.log(d);
+      this.send('/close ' + d.name, d);
+    },
     dialogClass: function(d, i) {
       if (this.q) return i ? "" : "active";
       var cn = this.activeClass(d.href());

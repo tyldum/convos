@@ -30,7 +30,15 @@
     }
   }
 
-  .content > a {
+  .link {
+    position: relative;
+
+    &:hover a.close {
+      display: block;
+    }
+  }
+
+  .content a {
     display: block;
     position: relative;
     padding: $gutter-width / 2;
@@ -60,6 +68,15 @@
 
     .material-icons { vertical-align: top; }
     &.simple .material-icons { vertical-align: bottom; }
+  }
+
+  a.close {
+    font-size: 0.9rem;
+    border-radius: 5px;
+    position: absolute;
+    top: $gutter-width / 2;
+    right: $gutter-width / 2;
+    // display: none;
   }
 
   .on {

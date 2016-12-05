@@ -5064,29 +5064,39 @@ img.embed {
       width: 240px; }
       .convos-main-menu.show-on-large {
         display: block !important; } }
-  .convos-main-menu .content > a {
+  .convos-main-menu .link {
+    position: relative; }
+    .convos-main-menu .link:hover a.close {
+      display: block; }
+  .convos-main-menu .content a {
     display: block;
     position: relative;
     padding: 0.75rem; }
-    .convos-main-menu .content > a.active {
+    .convos-main-menu .content a.active {
       background-color: #fff;
       color: #225725;
       font-weight: bold; }
-    .convos-main-menu .content > a.frozen {
+    .convos-main-menu .content a.frozen {
       color: #B71C1C; }
-    .convos-main-menu .content > a:hover, .convos-main-menu .content > a.focus {
+    .convos-main-menu .content a:hover, .convos-main-menu .content a.focus {
       background-color: #f0f0f0; }
-    .convos-main-menu .content > a .n-uread {
+    .convos-main-menu .content a .n-uread {
       font-size: 0.9rem;
       font-weight: normal;
       text-align: right;
       position: absolute;
       top: 0.75rem;
       right: 0.75rem; }
-    .convos-main-menu .content > a .material-icons {
+    .convos-main-menu .content a .material-icons {
       vertical-align: top; }
-    .convos-main-menu .content > a.simple .material-icons {
+    .convos-main-menu .content a.simple .material-icons {
       vertical-align: bottom; }
+  .convos-main-menu a.close {
+    font-size: 0.9rem;
+    border-radius: 5px;
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem; }
   .convos-main-menu .on {
     display: block;
     font-size: 0.9rem;
