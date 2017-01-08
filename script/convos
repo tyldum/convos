@@ -14,8 +14,9 @@ if ($ARGV[0] and -r $ARGV[0] and -f $ARGV[0]) {
 }
 
 my $command = $ARGV[0] || '';
-$ENV{MOJO_LOG_LEVEL} ||= 'fatal'      if $command eq 'version';
-$ENV{MOJO_MODE}      ||= 'production' if $command eq 'daemon';
+$ENV{CONVOS_COMMAND} = $command if grep { $command eq $_ } qw(set_password version);
+$ENV{MOJO_LOG_LEVEL} ||= 'error' if $ENV{CONVOS_COMMAND};
+$ENV{MOJO_MODE} ||= 'production' if $command eq 'daemon';
 
 unless ($ENV{CONVOS_SETUP}++) {
   eval "require $_;1" or die $@ for qw(FindBin File::Spec);
