@@ -21,7 +21,7 @@ has _irc => sub {
   my $self = shift;
   my $url  = $self->url;
   my $user = $self->_userinfo->[0];
-  my $irc  = Mojo::IRC::UA->new(debug_key => join ':', $user, $self->name);
+  my $irc  = Mojo::IRC::UA->new(track_any => 1, debug_key => join ':', $user, $self->name);
   my $nick;
 
   unless ($nick = $url->query->param('nick')) {
@@ -39,41 +39,19 @@ has _irc => sub {
 
   Scalar::Util::weaken($self);
   $irc->register_default_event_handlers;
+  $irc->unsubscribe('message');
   $irc->on(close => sub { $self and $self->_event_irc_close($_[0]) });
   $irc->on(error => sub { $self and $self->_event_irc_error({params => [$_[1]]}) });
-
-  for my $event (qw(ctcp_action irc_notice irc_privmsg)) {
-    $irc->on($event => sub { $self->_irc_message($event => $_[1]) });
-  }
-
-  for my $event (
-    qw(
-    err_cannotsendtochan err_erroneusnickname err_nicknameinuse irc_error
-    irc_join irc_kick irc_mode irc_nick irc_part irc_quit irc_rpl_myinfo
-    irc_rpl_welcome irc_topic
-    )
-    )
-  {
-    my $method = "_event_$event";
-    $irc->on($event => sub { $self->$method($_[1]) });
-  }
-
-  for my $event (
-    qw(
-    err_nomotd err_nosuchserver irc_rpl_yourhost irc_rpl_endofinfo
-    irc_rpl_created irc_rpl_bounce irc_rpl_adminme irc_rpl_adminemail
-    irc_rpl_global_users irc_rpl_isupport irc_rpl_localusers irc_rpl_statsconn
-    irc_rpl_tryagain irc_rpl_endoflinks irc_rpl_endofmotd
-    irc_rpl_endofstats irc_rpl_info irc_rpl_links irc_rpl_luserchannels
-    irc_rpl_luserclient irc_rpl_luserme irc_rpl_luserop
-    irc_rpl_luserunkown irc_rpl_motd irc_rpl_motdstart irc_rpl_servlist
-    irc_rpl_servlistend irc_rpl_statscommands irc_rpl_statslinkinfo
-    irc_rpl_statsoline irc_rpl_statsuptime irc_rpl_time irc_rpl_version
-    )
-    )
-  {
-    $irc->on($event => sub { $self->_irc_any($_[1]) });
-  }
+  $irc->on(
+    message => sub {
+      my ($irc, $msg) = @_;
+      return if $msg->{handled};
+      my $event = lc $msg->{command};
+      return $self->_irc_message($msg) if grep { $event eq $_ } qw(ctcp_action notice privmsg);
+      return $self->_irc_any($msg) unless my $cb = $self->can("_event_$event");
+      return $self->$cb($msg);
+    }
+  );
 
   return $irc;
 };
@@ -161,25 +139,6 @@ sub participants {
   );
 }
 
-sub rooms {
-  my ($self, $cb) = @_;
-  my $host = $self->url->host;
-
-  state $cache = {};    # room list is shared between all connections
-  return next_tick $self, $cb, '', $cache->{$host} if $cache->{$host};
-
-  Scalar::Util::weaken($self);
-  return $self->_proxy(
-    channels => sub {
-      my ($irc, $err, $map) = @_;
-      $cache->{$host} = [map { my $c = $map->{$_}; $c->{name} = $_; $c } keys %$map];
-      delete $cache->{$host} unless @{$cache->{$host}};
-      Mojo::IOLoop->timer(ROOM_CACHE_TIMER, sub { delete $cache->{$host} });
-      $self->$cb($cache->{$host} ? $err : 'No rooms.', $cache->{$host} || []);
-    },
-  );
-}
-
 sub send {
   my ($self, $target, $message, $cb) = @_;
 
@@ -204,7 +163,7 @@ sub send {
   return $self->_part_dialog($message || $target, $cb) if $cmd eq 'CLOSE' or $cmd eq 'PART';
   return $self->_topic($target, $message, $cb) if $cmd eq 'TOPIC';
   return $self->_proxy(whois => $message, $cb) if $cmd eq 'WHOIS';
-  return next_tick $self, $cb => 'Unknown IRC command.', undef;
+  return $self->_proxy(write => "$cmd $message", sub { $self->$cb($_[1]); });
 }
 
 sub _event_irc_close {
@@ -237,11 +196,11 @@ sub _irc_any {
   $self->emit(
     message => $self->messages,
     {
-      from => $msg->{prefix} // $self->id,
+      from => $msg->{prefix} ? +(IRC::Utils::parse_user($msg->{prefix}))[0] : $self->id,
       highlight => Mojo::JSON->false,
       message   => join(' ', @{$msg->{params}}),
       ts        => time,
-      type      => 'private',
+      type      => 'notice',
     }
   );
 }
@@ -435,6 +394,11 @@ _event err_nicknameinuse => sub {    # TODO
   $self->_notice("Nickname $nick is already in use.") unless $self->{err_nicknameinuse}{$nick}++;
 };
 
+_event err_unknowncommand => sub {
+  my ($self, $msg) = @_;
+  $self->_notice('Unknown command');
+};
+
 _event irc_join => sub {
   my ($self, $msg) = @_;
   my ($nick, $user, $host) = IRC::Utils::parse_user($msg->{prefix});
@@ -613,10 +577,6 @@ L</nick>.
 =head2 participants
 
 See L<Convos::Core::Connection/participants>.
-
-=head2 rooms
-
-See L<Convos::Core::Connection/rooms>.
 
 =head2 send
 
