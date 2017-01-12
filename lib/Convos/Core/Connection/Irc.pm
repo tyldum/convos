@@ -30,7 +30,7 @@ has _irc => sub {
     $url->query->param(nick => $nick);
   }
 
-  $user =~ s![^a-z]!!gi;
+  $user =~ s![^a-z_/0-9\+-]!!gi;
 
   $irc->name("Convos v$Convos::VERSION");
   $irc->nick($nick);
