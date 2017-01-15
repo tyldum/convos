@@ -41,6 +41,7 @@
       <div class="row">
         <md-input :value.sync="username" cols="s6">Username</md-input>
         <md-input :value.sync="password" cols="s6" type="password">Password</md-input>
+        <md-input :value.sync="name" placeholders="Example: freenode" cols="s6" >Name (optional)</md-input>
       </div>
       <div class="row on-connect-commands">
         <md-textarea v-ref:occ :value.sync="onConnectCommands" placeholder="/msg NickServ identify supersecret">On Connect Commands (one per line)</md-textarea>
@@ -72,6 +73,7 @@ module.exports = {
       tls: null,
       password: "",
       username: "",
+      name: "",
       wantedState: ""
     };
   },
@@ -107,6 +109,7 @@ module.exports = {
       }).join(":");
 
       userinfo = userinfo.match(/[^:]/) ? userinfo + "@" : "";
+      connection.name = this.name;
       connection.user = this.user;
       connection.wantedState = this.wantedState;
       connection.url = "irc://" + userinfo + this.server;
@@ -121,7 +124,7 @@ module.exports = {
         if (err) return self.errors = err;
         self.deleted = false;
         self.updateForm(this);
-        this.user.ensureDialog({connection_id: this.connection_id, dialog_id: "", name: this.connection_id});
+        this.user.ensureDialog({connection_id: this.connection_id, dialog_id: "", name: this.name});
         self.settings.main = "#chat/" + this.connection_id + "/";
       });
     },
@@ -137,6 +140,7 @@ module.exports = {
       this.server = url ? url.hostPort : Convos.settings.default_server || "";
       this.tls = url ? url.query.tls != false : null; // Need to use "==" instead of "===" http://dorey.github.io/JavaScript-Equality-Table/unified : ""/
       this.password = "";
+      this.name = this.connection ? this.connection.name : "";
       this.username = decodeURIComponent(userinfo[0] || "");
     }
   },

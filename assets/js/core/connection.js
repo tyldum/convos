@@ -76,8 +76,7 @@
   proto.save = function(cb) {
     var self = this;
 
-    // It is currently not possible to specify "name"
-    var attrs = {url: this.url, on_connect_commands: this.on_connect_commands, state: this.wantedState};
+    var attrs = {url: this.url, on_connect_commands: this.on_connect_commands, state: this.wantedState, name: this.name};
 
     if (this.connection_id) {
       Convos.api.updateConnection({body: attrs, connection_id: this.connection_id}, function(err, xhr) {
